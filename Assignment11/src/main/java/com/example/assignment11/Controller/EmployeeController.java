@@ -9,6 +9,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 @RestController
@@ -30,6 +31,10 @@ public class EmployeeController {
             String m=error.getFieldError().getDefaultMessage();
             return ResponseEntity.status(400).body(m);
         }
+        if (Integer.valueOf(employee.getEmploymentYear())>LocalDate.now().getYear())
+        {
+            return ResponseEntity.status(400).body("Employment Year should be in past or in present ");
+        }
         employees.add(employee);
         return ResponseEntity.status(200).body(new ApiResponse("Employee added"));
     }
@@ -40,6 +45,10 @@ public class EmployeeController {
         if(errors.hasErrors()){
             String m=errors.getFieldError().getDefaultMessage();
             return ResponseEntity.status(400).body(m);
+        }
+        if (Integer.valueOf(employee.getEmploymentYear())>LocalDate.now().getYear())
+        {
+            return ResponseEntity.status(400).body("Employment Year should be in past or in present ");
         }
         employees.set(index, employee);
         return ResponseEntity.status(200).body(new ApiResponse("Employee updated"));
@@ -53,12 +62,11 @@ public class EmployeeController {
 
     @PutMapping("applyannualleave/{index}")
     public ResponseEntity applyAnnualLeave(@PathVariable int index){
-        if(employees.get(index).isOnLeave() || employees.get(index).getAnnualLeave() ==0 ){
 
+        if(employees.get(index).getOnLeave() == true || Integer.valueOf(employees.get(index).getAnnualLeave()) ==0 ){
             return ResponseEntity.status(400).body(new ApiResponse("Can't apply an annual leave for this employee"));
-
         }
-        employees.get(index).setAnnualLeave(employees.get(index).getAnnualLeave() - 1);
+        employees.get(index).setAnnualLeave(String.valueOf(Integer.valueOf(employees.get(index).getAnnualLeave()) - 1));
         employees.get(index).setOnLeave(true);
         return ResponseEntity.status(200).body(new ApiResponse("Employee applied an annual leave"));
     }
